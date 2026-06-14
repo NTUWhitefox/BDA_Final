@@ -1,0 +1,6 @@
+Use school's public machine to deploy the demo.
+Access the machine with $ssh ws1
+
+Notes:
+Do not use over 800MB in the home directory (~/)
+If you need large space use /tmp2/b12705015/ on the machine. (So basically, you need to setup conda env in /tmp2/b12705015/)

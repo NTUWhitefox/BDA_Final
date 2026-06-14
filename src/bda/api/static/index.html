@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Indie Game Discovery — POC</title>
+<style>
+  :root { --bg:#0f1320; --card:#1a2032; --ink:#e7ecf5; --muted:#93a0bd; --accent:#6ea8fe; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:24px 28px; border-bottom:1px solid #232a40; }
+  h1 { margin:0; font-size:20px; }
+  p.sub { margin:6px 0 0; color:var(--muted); font-size:13px; }
+  main { max-width:980px; margin:0 auto; padding:24px 20px 60px; }
+  .search { display:flex; gap:10px; margin-bottom:20px; }
+  input { flex:1; padding:11px 14px; border-radius:10px; border:1px solid #2a3350;
+          background:var(--card); color:var(--ink); font-size:15px; }
+  button { padding:11px 16px; border:0; border-radius:10px; background:var(--accent);
+           color:#06122e; font-weight:600; cursor:pointer; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid #232a40; border-radius:14px; padding:16px 18px; }
+  .card h2 { font-size:14px; margin:0 0 10px; color:var(--accent); text-transform:uppercase; letter-spacing:.04em; }
+  .row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dashed #2a3350; cursor:pointer; }
+  .row:last-child { border-bottom:0; }
+  .row:hover { color:var(--accent); }
+  .name { font-size:14px; }
+  .meta { color:var(--muted); font-size:12px; }
+  .tags span { display:inline-block; background:#222a44; color:#c7d2ee; border-radius:999px;
+               padding:3px 9px; margin:3px 4px 0 0; font-size:12px; }
+  .hint { color:var(--muted); font-size:12px; margin-top:6px; }
+  .full { grid-column:1 / -1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Indie Game Discovery &mdash; proof of concept</h1>
+  <p class="sub">Tag-rarity (TF-IDF) similarity + tag co-occurrence niches (Louvain) + audience hubs (PageRank). Search a game, then click any result.</p>
+  <p class="sub" style="margin-top:8px"><a href="/graph" style="color:var(--accent)">View the game relationship graph &rarr;</a></p>
+</header>
+<main>
+  <div class="search">
+    <input id="q" placeholder="Search a game (e.g. Hades, Slay the Spire, Stardew)…"
+           onkeydown="if(event.key==='Enter')doSearch()" />
+    <button onclick="doSearch()">Search</button>
+  </div>
+  <div id="results" class="card"><div class="hint">Start by searching for a game above.</div></div>
+
+  <div id="report" class="grid" style="margin-top:18px; display:none;">
+    <div class="card"><h2>Players — games like this</h2><div id="similar"></div></div>
+    <div class="card"><h2>Developers — direct competitors</h2><div id="competitors"></div></div>
+    <div class="card full"><h2>Niche profile</h2><div id="niche"></div></div>
+  </div>
+</main>
+<script>
+async function j(u){ const r = await fetch(u); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+async function doSearch(){
+  const q = document.getElementById('q').value.trim();
+  if(!q) return;
+  const hits = await j('/api/search?q=' + encodeURIComponent(q));
+  const box = document.getElementById('results');
+  if(!hits.length){ box.innerHTML = '<div class="hint">No matches.</div>'; return; }
+  box.innerHTML = hits.map(h =>
+    `<div class="row" onclick="report(${h.appid})"><span class="name">${h.name}</span>`+
+    `<span class="meta">appid ${h.appid}</span></div>`).join('');
+}
+
+function rows(list){
+  if(!list.length) return '<div class="hint">none</div>';
+  return list.map(h =>
+    `<div class="row" onclick="report(${h.appid})"><span class="name">${h.name}</span>`+
+    `<span class="meta">sim ${h.score}</span></div>`).join('');
+}
+
+async function report(appid){
+  document.getElementById('report').style.display = 'grid';
+  const [sim, comp, niche] = await Promise.all([
+    j('/api/similar/'+appid), j('/api/competitors/'+appid), j('/api/niche/'+appid)
+  ]);
+  document.getElementById('similar').innerHTML = rows(sim);
+  document.getElementById('competitors').innerHTML = rows(comp);
+  const hubs = (niche.audience_hubs||[]).map(h=>`<div class="row"><span class="name">${h.name}</span>`+
+    `<span class="meta">PageRank ${h.score}</span></div>`).join('');
+  document.getElementById('niche').innerHTML =
+    `<div class="meta">Niche #${niche.niche_id} · ${niche.niche_size} games</div>`+
+    `<div class="tags" style="margin:8px 0">`+
+      (niche.defining_tags||[]).map(t=>`<span>${t}</span>`).join('')+`</div>`+
+    `<div class="meta" style="margin-top:10px">Audience hubs — where this audience concentrates:</div>`+ hubs +
+    `<div class="meta" style="margin-top:10px">Positioning gaps (under-used tags to differentiate):</div>`+
+    `<div class="tags">`+(niche.positioning_gaps||[]).map(t=>`<span>${t}</span>`).join('')+`</div>`;
+  window.scrollTo({top: document.getElementById('report').offsetTop-20, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

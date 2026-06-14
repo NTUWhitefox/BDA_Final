@@ -1,0 +1,43 @@
+appid,name,developer,tags,genres,owners,price_usd,positive,negative,release_year
+1145360,Hades,Supergiant Games,Roguelike|Action Roguelike|Hack and Slash|Isometric|Mythology|Great Soundtrack|Story Rich|Dungeon Crawler|Fast-Paced|Replay Value,Action|Indie|RPG,"10000000-20000000",24.99,310000,6000,2020
+646570,Slay the Spire,Mega Crit Games,Card Game|Deckbuilding|Roguelike|Roguelike Deckbuilder|Strategy|Turn-Based|Replay Value|Singleplayer|Indie|Difficult,Indie|Strategy,"5000000-10000000",24.99,200000,4000,2019
+588650,Dead Cells,Motion Twin,Roguelike|Action Roguelike|Metroidvania|Pixel Graphics|2D|Difficult|Fast-Paced|Souls-like|Hack and Slash|Replay Value,Action|Adventure|Indie,"5000000-10000000",24.99,150000,5000,2018
+250900,The Binding of Isaac Rebirth,Nicalis,Roguelike|Action Roguelike|Twin Stick Shooter|Pixel Graphics|Difficult|Replay Value|Dungeon Crawler|2D|Gore|Indie,Action|Indie,"5000000-10000000",14.99,200000,5000,2014
+311690,Enter the Gungeon,Dodge Roll,Roguelike|Action Roguelike|Bullet Hell|Twin Stick Shooter|Pixel Graphics|Difficult|Dungeon Crawler|2D|Fast-Paced|Indie,Action|Indie,"5000000-10000000",14.99,90000,3000,2016
+632360,Risk of Rain 2,Hopoo Games,Roguelike|Action Roguelike|Third-Person Shooter|Co-op|Multiplayer|Fast-Paced|Replay Value|3D|Difficult|Online Co-Op,Action|Indie,"5000000-10000000",24.99,200000,8000,2020
+1794680,Vampire Survivors,poncle,Roguelike|Action Roguelike|Bullet Hell|Pixel Graphics|Casual|Replay Value|Fast-Paced|2D|Singleplayer|Difficult,Action|Casual|Indie|RPG,"5000000-10000000",4.99,250000,3000,2022
+418530,Spelunky 2,Mossmouth,Roguelike|Platformer|Difficult|Pixel Graphics|2D|Co-op|Replay Value|Exploration|Indie|Procedural Generation,Action|Adventure|Indie,"1000000-2000000",19.99,30000,2000,2020
+367520,Hollow Knight,Team Cherry,Metroidvania|Souls-like|Difficult|Atmospheric|2D|Exploration|Great Soundtrack|Hand-Drawn|Adventure|Platformer,Action|Adventure|Indie,"5000000-10000000",14.99,400000,8000,2017
+504230,Celeste,Maddy Makes Games,Platformer|Precision Platformer|Difficult|Pixel Graphics|2D|Great Soundtrack|Story Rich|Atmospheric|Singleplayer|Indie,Action|Adventure|Indie,"2000000-5000000",19.99,120000,2000,2018
+261570,Ori and the Blind Forest,Moon Studios,Metroidvania|Platformer|Atmospheric|Great Soundtrack|Beautiful|2D|Adventure|Story Rich|Difficult|Exploration,Action|Adventure|Indie,"2000000-5000000",19.99,90000,2000,2015
+268910,Cuphead,Studio MDHR,Difficult|Hand-Drawn|2D|Boss Rush|Platformer|Co-op|Great Soundtrack|Retro|Fast-Paced|Indie,Action|Indie,"5000000-10000000",19.99,180000,5000,2017
+413150,Stardew Valley,ConcernedApe,Farming Sim|Life Sim|Pixel Graphics|Relaxing|Sandbox|Open World|Crafting|Co-op|Cozy|Indie,Indie|RPG|Simulation,"15000000-20000000",14.99,600000,8000,2016
+105600,Terraria,Re-Logic,Sandbox|Open World|Survival|Crafting|2D|Co-op|Building|Exploration|Pixel Graphics|Adventure,Action|Adventure|Indie|RPG,"15000000-20000000",9.99,1000000,15000,2011
+219740,Don't Starve,Klei Entertainment,Survival|Crafting|Roguelike|Atmospheric|Hand-Drawn|Open World|Difficult|Sandbox|2D|Indie,Indie|Simulation,"5000000-10000000",9.99,90000,5000,2013
+294100,RimWorld,Ludeon Studios,Colony Sim|Base Building|Survival|Strategy|Sandbox|Management|Simulation|Sci-fi|Story Rich|Replay Value,Indie|Simulation|Strategy,"5000000-10000000",34.99,180000,4000,2018
+427520,Factorio,Wube Software,Automation|Base Building|Management|Strategy|Crafting|Sandbox|Resource Management|Open World|Simulation|Replay Value,Casual|Indie|Simulation|Strategy,"3000000-5000000",35.00,150000,2000,2020
+255710,Cities Skylines,Colossal Order,City Builder|Building|Management|Simulation|Sandbox|Strategy|Economy|Relaxing|Singleplayer|Moddable,Simulation|Strategy,"5000000-10000000",29.99,150000,8000,2015
+219150,Hotline Miami,Dennaton Games,Top-Down Shooter|Difficult|Pixel Graphics|Gore|Fast-Paced|Great Soundtrack|Violent|2D|Retro|Indie,Action|Indie,"2000000-5000000",9.99,60000,1500,2012
+391540,Undertale,tobyfox,Story Rich|Great Soundtrack|Pixel Graphics|RPG|Funny|Emotional|Singleplayer|2D|Indie|Atmospheric,Adventure|Indie|RPG,"5000000-10000000",9.99,200000,4000,2015
+1057090,Ori and the Will of the Wisps,Moon Studios,Metroidvania|Platformer|Atmospheric|Great Soundtrack|Beautiful|Story Rich|2D|Adventure|Difficult|Exploration,Action|Adventure,"1000000-2000000",29.99,40000,1000,2020
+257350,Darkest Dungeon,Red Hook Studios,Roguelike|Turn-Based|RPG|Difficult|Strategy|Dark|Atmospheric|Gothic|Party-Based|Replay Value,Indie|RPG|Strategy,"2000000-5000000",24.99,80000,6000,2016
+698780,Disco Elysium,ZA/UM,Story Rich|RPG|Detective|Choices Matter|Atmospheric|Great Soundtrack|Dialog Heavy|Mystery|Singleplayer|Isometric,Indie|RPG,"1000000-2000000",39.99,90000,3000,2019
+739630,Phasmophobia,Kinetic Games,Horror|Co-op|Multiplayer|Online Co-Op|Psychological Horror|Survival Horror|First-Person|Atmospheric|VR|Indie,Action|Adventure|Indie,"10000000-20000000",13.99,500000,15000,2020
+105450,The Witness,Thekla Inc,Puzzle|Atmospheric|Exploration|First-Person|Open World|Beautiful|Difficult|Singleplayer|Story Rich|Indie,Adventure|Indie,"1000000-2000000",39.99,20000,3000,2016
+1366540,Dyson Sphere Program,Youthcat Studio,Automation|Base Building|Space|Management|Strategy|Sci-fi|Resource Management|Open World|Simulation|Building,Casual|Indie|Simulation|Strategy,"1000000-2000000",24.99,90000,2000,2021
+526870,Satisfactory,Coffee Stain Studios,Automation|Base Building|First-Person|Open World|Crafting|Exploration|Co-op|Management|Building|Simulation,Adventure|Indie|Simulation,"3000000-5000000",29.99,180000,3000,2024
+322330,Don't Starve Together,Klei Entertainment,Survival|Co-op|Multiplayer|Crafting|Online Co-Op|Atmospheric|Open World|Difficult|Sandbox|Hand-Drawn,Indie|Simulation,"10000000-20000000",14.99,400000,15000,2016
+242760,The Forest,Endnight Games,Survival|Crafting|Horror|Open World|Co-op|Building|Multiplayer|Atmospheric|Exploration|Base Building,Action|Adventure|Indie|Simulation,"5000000-10000000",19.99,400000,12000,2018
+236870,Papers Please,3909,Story Rich|Indie|Pixel Graphics|Atmospheric|Dystopian|Singleplayer|Choices Matter|Simulation|Dark|Great Soundtrack,Indie|Simulation,"2000000-5000000",9.99,90000,1000,2013
+460790,Bug Fables,Moonsprout Games,RPG|Turn-Based|Story Rich|Cute|Great Soundtrack|Adventure|Colorful|Indie|Singleplayer|Exploration,Adventure|Indie|RPG,"200000-500000",19.99,9000,200,2019
+1229490,Loop Hero,Four Quarters,Roguelike|Card Game|Pixel Graphics|Strategy|Replay Value|Singleplayer|Indie|Atmospheric|Dark|Difficult,Indie|RPG|Strategy,"1000000-2000000",14.99,40000,3000,2021
+774171,Inscryption,Daniel Mullins Games,Card Game|Deckbuilding|Roguelike Deckbuilder|Horror|Story Rich|Psychological Horror|Atmospheric|Singleplayer|Dark|Indie,Adventure|Indie|Strategy,"1000000-2000000",19.99,80000,2000,2021
+1102190,Monster Train,Shiny Shoe,Card Game|Deckbuilding|Roguelike Deckbuilder|Strategy|Replay Value|Turn-Based|Singleplayer|Indie|Difficult|Tower Defense,Indie|Strategy,"500000-1000000",24.99,30000,1000,2020
+431960,Wallpaper Engine,Wallpaper Engine Team,Utilities|Customization|Software|Animation|Relaxing|Singleplayer|Anime|Design|Indie|Casual,Utilities,"20000000-50000000",3.99,800000,10000,2018
+1196590,Potion Craft,niceplay games,Crafting|Simulation|Relaxing|Indie|Singleplayer|Alchemy|Management|Sandbox|Cute|Economy,Indie|RPG|Simulation,"500000-1000000",16.99,30000,800,2022
+1426210,It Takes Two,Hazelight Studios,Co-op|Multiplayer|Adventure|Story Rich|Online Co-Op|Platformer|Local Co-Op|Puzzle|Beautiful|Family Friendly,Action|Adventure,"3000000-5000000",39.99,200000,5000,2021
+739530,Outer Wilds,Mobius Digital,Exploration|Open World|Mystery|Atmospheric|Story Rich|Space|Puzzle|Great Soundtrack|Singleplayer|Sci-fi,Adventure|Indie,"1000000-2000000",24.99,70000,2000,2019
+588430,Tunic,TUNIC Team,Adventure|Isometric|Souls-like|Exploration|Puzzle|Atmospheric|Difficult|Cute|Indie|Singleplayer,Action|Adventure|Indie,"500000-1000000",29.99,30000,800,2022
+1145350,Hades II,Supergiant Games,Roguelike|Action Roguelike|Hack and Slash|Mythology|Great Soundtrack|Story Rich|Isometric|Early Access|Fast-Paced|Replay Value,Action|Indie|RPG|Early Access,"2000000-5000000",29.99,90000,2000,2024
+753640,Outer Worlds,Obsidian Entertainment,RPG|Story Rich|Open World|Sci-fi|Choices Matter|First-Person|Singleplayer|Atmospheric|Action RPG|Exploration,RPG,"2000000-5000000",59.99,60000,8000,2019
+1426450,Coffee Talk,Toge Productions,Story Rich|Visual Novel|Relaxing|Atmospheric|Great Soundtrack|Singleplayer|Indie|Casual|Choices Matter|Pixel Graphics,Casual|Indie|Simulation,"500000-1000000",12.99,20000,400,2020

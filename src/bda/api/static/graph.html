@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Relationship Graph — POC</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root { --bg:#0f1320; --ink:#e7ecf5; --muted:#93a0bd; --accent:#6ea8fe; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:18px 24px; border-bottom:1px solid #232a40; }
+  h1 { margin:0; font-size:18px; }
+  p.sub { margin:6px 0 0; color:var(--muted); font-size:13px; }
+  a { color:var(--accent); }
+  #net { width:100%; height:calc(100vh - 150px); }
+  #legend { padding:10px 24px; font-size:12px; color:var(--muted); display:flex; flex-wrap:wrap; gap:14px; }
+  .sw { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:middle; }
+  #info { position:absolute; right:18px; top:150px; background:#1a2032; border:1px solid #2a3350;
+          border-radius:10px; padding:12px 14px; max-width:260px; font-size:13px; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Game relationship graph</h1>
+  <p class="sub">Nodes = games (size = PageRank "audience hub"), colour = micro-niche (Louvain), edges = tag-similarity. Drag to explore; click a node for its discovery report. <a href="/">&larr; back to search</a></p>
+</header>
+<div id="legend"></div>
+<div id="net"></div>
+<div id="info"></div>
+<script>
+const PALETTE = ["#6ea8fe","#f78da7","#7bd88f","#f6c177","#c4a7e7","#9ccfd8","#eb6f92","#a3be8c","#d08770","#b48ead"];
+async function j(u){ const r=await fetch(u); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+(async () => {
+  const data = await j('/api/graph');
+  const nodes = data.nodes.map(n => ({
+    id:n.id, label:n.label, value:n.value, group:n.group,
+    color:{ background:PALETTE[n.group % PALETTE.length], border:'#0f1320' },
+    font:{ color:'#e7ecf5', size:13 }
+  }));
+  const edges = data.edges.map(e => ({ from:e.from, to:e.to, value:e.value,
+    color:{ color:'#33405e', opacity:0.5 } }));
+
+  const legend = document.getElementById('legend');
+  for(let g=0; g<data.n_niches; g++){
+    const s=document.createElement('span');
+    s.innerHTML = `<span class="sw" style="background:${PALETTE[g%PALETTE.length]}"></span>niche ${g}`;
+    legend.appendChild(s);
+  }
+
+  const net = new vis.Network(document.getElementById('net'),
+    { nodes:new vis.DataSet(nodes), edges:new vis.DataSet(edges) },
+    { nodes:{ shape:'dot', scaling:{ min:6, max:40 } },
+      edges:{ smooth:false, scaling:{ min:1, max:6 } },
+      physics:{ barnesHut:{ gravitationalConstant:-8000, springLength:120 }, stabilization:{ iterations:200 } },
+      interaction:{ hover:true, tooltipDelay:120 } });
+
+  net.on('click', async params => {
+    const info = document.getElementById('info');
+    if(!params.nodes.length){ info.style.display='none'; return; }
+    const appid = params.nodes[0];
+    const [sim, niche] = await Promise.all([j('/api/similar/'+appid), j('/api/niche/'+appid)]);
+    info.style.display='block';
+    info.innerHTML = `<b>${niche.name}</b><br><span style="color:#93a0bd">niche ${niche.niche_id} · ${niche.niche_size} games</span>`+
+      `<br><br><b>Most similar:</b><br>`+ sim.map(h=>`• ${h.name} <span style="color:#93a0bd">(${h.score})</span>`).join('<br>');
+  });
+})();
+</script>
+</body>
+</html>
