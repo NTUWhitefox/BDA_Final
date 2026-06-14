@@ -58,16 +58,33 @@ bash ~/BDA_Final/deploy/run.sh
 nohup bash ~/BDA_Final/deploy/run.sh > ~/bda.log 2>&1 &
 ```
 
-## Using the live 100-game data (optional)
+## Using live data (optional)
 
-The build falls back to the bundled 42-game seed if no live data is present. To
-use real data on ws1 (if it has outbound internet):
+The build falls back to the bundled 42-game seed if no live data is present.
+`ws1_setup.sh`/`run.sh` export `BDA_DATA_DIR=/tmp2/b12705015/data`, so all
+collected data and built artifacts land in scratch (never the home quota).
+
+**Indie-weighted bulk collection** (the realistic dataset — filters SteamSpy's
+`all` list down to the indie wedge by owners/review thresholds *before* the
+expensive per-app tag enrichment, so we don't waste requests on AAA hits):
 ```bash
+ssh ws1
+export BDA_DATA_DIR=/tmp2/b12705015/data
 cd ~/BDA_Final && conda activate /tmp2/b12705015/bda_env
-python scripts/01_collect.py --source steamspy --top2weeks   # writes data/raw/games_raw.csv
-python scripts/02_build.py
+# runs at ~1 req/sec (SteamSpy rate limit); checkpoints every 50 games and
+# RESUMES on re-run, so a dropped connection / wiped /tmp2 never restarts it.
+python scripts/01_collect.py --source steamspy --indie --pages 25 --limit 3000
+python scripts/02_build.py        # builds + pickles the engine in /tmp2/.../artifacts
 ```
-Or `scp` your local `data/raw/games_raw.csv` to `~/BDA_Final/data/raw/` before step 3.
+Run the collection in `tmux` (it's long) — see "Keep it running" above. ~1,000
+games enrich in ~25 min; the index then builds in <4 s.
+
+Quick alternatives:
+```bash
+python scripts/01_collect.py --source steamspy --top2weeks   # ~100 most-played
+python scripts/04_refresh.py --max-new 200                   # incremental new releases
+```
+Or `scp` a local `games_raw.csv` to `/tmp2/b12705015/data/raw/` before building.
 
 ## Troubleshooting
 
