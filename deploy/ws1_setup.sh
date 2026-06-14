@@ -14,12 +14,14 @@ ENV_PREFIX="${SCRATCH}/bda_env"
 REPO_DIR="${REPO_DIR:-$HOME/BDA_Final}"
 
 echo ">> scratch dir: $SCRATCH"
-mkdir -p "$SCRATCH"/{conda_pkgs,pip_cache,tmp,miniconda}
+mkdir -p "$SCRATCH"/{conda_pkgs,pip_cache,tmp,miniconda,.cache}
 
 # Redirect every cache that would otherwise fill the home quota.
 export CONDA_PKGS_DIRS="$SCRATCH/conda_pkgs"
 export PIP_CACHE_DIR="$SCRATCH/pip_cache"
 export TMPDIR="$SCRATCH/tmp"
+# Disable the Anaconda TOS interactive plugin — it crashes in non-interactive SSH sessions.
+export CONDA_NO_PLUGINS=true
 
 # 1. Ensure conda is available; if not, bootstrap miniconda INTO /tmp2 (never home).
 if command -v conda >/dev/null 2>&1; then
@@ -38,7 +40,7 @@ source "$CONDA_BASE/etc/profile.d/conda.sh"
 # 2. Create the environment in /tmp2 (prefix install, not name-based in home).
 if [ ! -d "$ENV_PREFIX" ]; then
   echo ">> creating env at $ENV_PREFIX"
-  conda create -y -p "$ENV_PREFIX" python=3.10
+  conda create -y --solver=classic -p "$ENV_PREFIX" python=3.10
 fi
 conda activate "$ENV_PREFIX"
 
