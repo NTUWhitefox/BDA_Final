@@ -10,6 +10,8 @@ SCRATCH="/tmp2/${USER_ID}"
 ENV_PREFIX="${SCRATCH}/bda_env"
 REPO_DIR="${REPO_DIR:-$HOME/BDA_Final}"
 PORT="${PORT:-8731}"
+# Must match ws1_setup.sh so the server reads the index built into /tmp2.
+export BDA_DATA_DIR="${BDA_DATA_DIR:-$SCRATCH/data}"
 
 if command -v conda >/dev/null 2>&1; then
   CONDA_BASE="$(conda info --base)"

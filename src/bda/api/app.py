@@ -21,16 +21,39 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
 from ..collect.load_sample import load_games
+from ..config import ENGINE_PKL, RAW_CSV, SAMPLE_CSV
 from ..process.engine import RecommenderEngine
 
 app = FastAPI(title="Indie Game Discovery POC", version="0.2.0")
 STATIC = Path(__file__).parent / "static"
 
 
+def _pickle_is_fresh() -> bool:
+    """True if a saved engine exists and is newer than its source data, so we can
+    load it instead of rebuilding the index cold on the first request."""
+    if not ENGINE_PKL.exists():
+        return False
+    built = ENGINE_PKL.stat().st_mtime
+    for src in (RAW_CSV, SAMPLE_CSV):
+        if src.exists() and src.stat().st_mtime > built:
+            return False  # data changed since the engine was built -> rebuild
+    return True
+
+
 @lru_cache(maxsize=1)
 def get_engine() -> RecommenderEngine:
+    if _pickle_is_fresh():
+        try:
+            return RecommenderEngine.load(ENGINE_PKL)
+        except Exception:
+            pass  # corrupt/incompatible pickle -> fall back to a fresh build
     games, _ = load_games()
-    return RecommenderEngine(games)
+    engine = RecommenderEngine(games)
+    try:
+        engine.save(ENGINE_PKL)  # cache for the next restart
+    except Exception:
+        pass
+    return engine
 
 
 @app.get("/api/health")

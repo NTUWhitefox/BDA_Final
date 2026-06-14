@@ -24,10 +24,41 @@ _session = requests.Session()
 _session.headers.update({"User-Agent": USER_AGENT})
 
 
-def _get(params: dict) -> dict:
-    resp = _session.get(BASE, params=params, timeout=REQUEST_TIMEOUT)
-    resp.raise_for_status()
-    return resp.json()
+def _get(params: dict, retries: int = 3, backoff: float = 2.0) -> dict:
+    """GET with exponential backoff so a transient hiccup during a long (~90 min)
+    collection doesn't abort the whole run. Raises after the final attempt."""
+    last_exc = None
+    for attempt in range(retries):
+        try:
+            resp = _session.get(BASE, params=params, timeout=REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:                      # noqa: BLE001
+            last_exc = e
+            if attempt < retries - 1:
+                time.sleep(backoff * (2 ** attempt))   # 2s, 4s, 8s, ...
+    raise last_exc
+
+
+def parse_owners_lower(owners: str) -> int:
+    """Lower bound of a SteamSpy owners range string -> int.
+
+    SteamSpy returns ranges like '20,000 .. 50,000' or '1,000,000 .. 2,000,000'.
+    The lower bound is enough to separate the indie long tail from blockbusters."""
+    head = str(owners).split("..")[0].strip().replace(",", "").replace(" ", "")
+    return int(head) if head.isdigit() else 0
+
+
+def is_indie_candidate(record: dict, max_owners: int = 2_000_000,
+                       max_reviews: int = 100_000) -> bool:
+    """Cheap pre-enrichment filter to keep the indie wedge and drop AAA/mega-hits.
+
+    Runs on the bulk 'all' records (which include owners + review counts but NOT
+    tags), so we only pay the expensive per-app tag enrichment for games our
+    customer actually competes with. See PLAN.md section 5.3."""
+    owners_lo = parse_owners_lower(record.get("owners", ""))
+    reviews = int(record.get("positive", 0) or 0) + int(record.get("negative", 0) or 0)
+    return owners_lo < max_owners and reviews < max_reviews
 
 
 def fetch_app(appid: int) -> dict:

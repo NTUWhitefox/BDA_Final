@@ -4,26 +4,39 @@ Implements the hybrid design from PLAN.md section 4.3 at proof-of-concept scale:
 
   1. Tag-rarity weighting   : games x tags count matrix -> TF-IDF (rare tags matter
                               more, so generic tags like "Indie" don't dominate).
-  2. Game->game similarity  : cosine similarity over the TF-IDF tag vectors.
+  2. Game->game similarity  : cosine similarity over the TF-IDF tag vectors, kept
+                              as a sparse top-k nearest-neighbour structure.
   3. Tag co-occurrence graph: tags linked when they appear together on games;
                               Louvain community detection -> micro-niches.
   4. PageRank on the game   : centrality over the game-similarity graph identifies
      similarity graph         "hub" games where an audience concentrates.
 
-At 10x/100x scale the same steps map onto Spark (TF-IDF/matrix ops), GraphFrames
-(community detection / PageRank) and a vector index (FAISS) for nearest neighbours;
-here we keep everything in-memory with scikit-learn + networkx.
+Scaling note (PLAN.md section 5). The naive approach materialises the full
+n x n cosine-similarity matrix, which is O(n^2) memory: ~10 GB at 50k games and
+the build simply crashes. We instead keep only each game's top-K neighbours via
+scikit-learn's NearestNeighbors, dropping memory to O(n*K) (a few MB at 50k
+games) while leaving every query answer identical at the top of the list. At
+10x/100x scale the same steps map onto Spark (TF-IDF/matrix ops), GraphFrames
+(community detection / PageRank) and a vector index (FAISS) for nearest
+neighbours; here we keep everything in-memory with scikit-learn + networkx.
 """
 from __future__ import annotations
 
+import pickle
 from dataclasses import dataclass
+from pathlib import Path
 
 import networkx as nx
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import MultiLabelBinarizer
+
+# How many nearest neighbours to retain per game. Caps memory at O(n*K) and is
+# comfortably larger than any k a query asks for, so similar()/competitors()/
+# graph_data() all have enough candidates to rank.
+MAX_NEIGHBOURS = 50
 
 
 def _split_tags(s: str) -> list:
@@ -64,15 +77,37 @@ class RecommenderEngine:
         self.tfidf = TfidfTransformer()
         self.vectors = self.tfidf.fit_transform(counts)        # sparse, weighted
 
-        # (2) full game->game cosine similarity (fine at POC scale)
-        self.sim = cosine_similarity(self.vectors)
-        np.fill_diagonal(self.sim, 0.0)
+        # (2) sparse top-K nearest neighbours instead of a full n x n matrix.
+        self._build_knn()
 
         self.idx_by_appid = {int(a): i for i, a in enumerate(self.games["appid"])}
 
         self._build_tag_graph(counts)
         self._build_game_graph()
         self._assign_niches(tag_lists)
+
+    def _build_knn(self) -> None:
+        """Each game's top-K most similar games (cosine over TF-IDF vectors).
+
+        Stored as two n x K arrays (neighbour index + similarity). This replaces
+        the O(n^2) dense cosine matrix with O(n*K) memory; the brute-force search
+        still computes distances in bounded batches internally."""
+        n = len(self.games)
+        k = min(MAX_NEIGHBOURS + 1, n)        # +1 because a game is its own NN
+        nn = NearestNeighbors(n_neighbors=k, metric="cosine", algorithm="brute")
+        nn.fit(self.vectors)
+        dist, idx = nn.kneighbors(self.vectors)
+        self.knn_idx = idx.astype(np.int32)            # n x k
+        self.knn_sim = (1.0 - dist).astype(np.float32)  # cosine similarity
+
+    def _neighbours(self, i: int) -> dict:
+        """{neighbour_index: similarity} for game i, excluding itself.
+
+        Filtering self by index (not by position) is robust to duplicate vectors,
+        where a game might not be its own top neighbour."""
+        return {int(j): float(s)
+                for j, s in zip(self.knn_idx[i], self.knn_sim[i])
+                if int(j) != i}
 
     def _build_tag_graph(self, counts: np.ndarray) -> None:
         """Tag co-occurrence graph + Louvain communities (micro-niches)."""
@@ -94,13 +129,15 @@ class RecommenderEngine:
         self.n_niches = len(communities)
 
     def _build_game_graph(self, threshold: float = 0.15) -> None:
-        """PageRank over the game-similarity graph -> audience-hub score."""
+        """PageRank over the game-similarity graph -> audience-hub score.
+
+        Built from the sparse kNN edges (each game linked to its similar games
+        above `threshold`), so this is O(n*K) rather than O(n^2)."""
         g = nx.Graph()
         g.add_nodes_from(range(len(self.games)))
         n = len(self.games)
         for i in range(n):
-            for j in range(i + 1, n):
-                w = float(self.sim[i, j])
+            for j, w in self._neighbours(i).items():
                 if w >= threshold:
                     g.add_edge(i, j, weight=w)
         self.game_graph = g
@@ -122,6 +159,22 @@ class RecommenderEngine:
             niches.append(max(votes, key=votes.get) if votes else -1)
         self.games["niche"] = niches
 
+    # --------------------------------------------------------------- persist
+    def save(self, path) -> None:
+        """Serialise the fitted engine so the server can load it instantly."""
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "wb") as f:
+            pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    @classmethod
+    def load(cls, path) -> "RecommenderEngine":
+        with open(path, "rb") as f:
+            obj = pickle.load(f)
+        if not isinstance(obj, cls):
+            raise TypeError(f"{path} did not contain a RecommenderEngine")
+        return obj
+
     # ------------------------------------------------------------------ query
     def _hit(self, i: int, score: float) -> GameHit:
         row = self.games.iloc[i]
@@ -138,19 +191,24 @@ class RecommenderEngine:
         i = self.idx_by_appid.get(int(appid))
         if i is None:
             return []
-        order = np.argsort(self.sim[i])[::-1][:k]
-        return [self._hit(int(j), self.sim[i, j]) for j in order]
+        ranked = sorted(self._neighbours(i).items(),
+                        key=lambda kv: kv[1], reverse=True)[:k]
+        return [self._hit(j, s) for j, s in ranked]
 
     def competitors(self, appid: int, k: int = 5) -> list:
-        """Closest games within the same niche - a developer's direct rivals."""
+        """Closest games within the same niche - a developer's direct rivals.
+
+        Drawn from the game's nearest neighbours filtered to its niche; with
+        MAX_NEIGHBOURS=50 this captures the true top competitors, since the most
+        similar same-niche games are also among the most similar games overall."""
         i = self.idx_by_appid.get(int(appid))
         if i is None:
             return []
         niche = int(self.games.iloc[i]["niche"])
-        same = [j for j in range(len(self.games))
-                if j != i and int(self.games.iloc[j]["niche"]) == niche]
-        same.sort(key=lambda j: self.sim[i, j], reverse=True)
-        return [self._hit(j, self.sim[i, j]) for j in same[:k]]
+        same = [(j, s) for j, s in self._neighbours(i).items()
+                if int(self.games.iloc[j]["niche"]) == niche]
+        same.sort(key=lambda x: x[1], reverse=True)
+        return [self._hit(j, s) for j, s in same[:k]]
 
     def niche_profile(self, appid: int) -> dict:
         """The game's niche: defining tags, sibling games, and audience hubs."""
@@ -203,16 +261,16 @@ class RecommenderEngine:
         n = len(self.games)
         for i in range(n):
             kept = 0
-            for j in np.argsort(self.sim[i])[::-1]:
-                if j == i or self.sim[i, j] < threshold:
-                    continue
+            for j, s in sorted(self._neighbours(i).items(),
+                               key=lambda kv: kv[1], reverse=True):
+                if s < threshold:
+                    break
                 a, b = sorted((int(self.games.iloc[i]["appid"]),
                                int(self.games.iloc[j]["appid"])))
                 if (a, b) in seen:
                     continue
                 seen.add((a, b))
-                edges.append({"from": a, "to": b,
-                              "value": round(float(self.sim[i, j]), 3)})
+                edges.append({"from": a, "to": b, "value": round(float(s), 3)})
                 kept += 1
                 if kept >= max_edges_per_node:
                     break

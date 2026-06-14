@@ -14,7 +14,7 @@ ENV_PREFIX="${SCRATCH}/bda_env"
 REPO_DIR="${REPO_DIR:-$HOME/BDA_Final}"
 
 echo ">> scratch dir: $SCRATCH"
-mkdir -p "$SCRATCH"/{conda_pkgs,pip_cache,tmp,miniconda,.cache}
+mkdir -p "$SCRATCH"/{conda_pkgs,pip_cache,tmp,miniconda,.cache,data}
 
 # Redirect every cache that would otherwise fill the home quota.
 export CONDA_PKGS_DIRS="$SCRATCH/conda_pkgs"
@@ -22,6 +22,8 @@ export PIP_CACHE_DIR="$SCRATCH/pip_cache"
 export TMPDIR="$SCRATCH/tmp"
 # Disable the Anaconda TOS interactive plugin — it crashes in non-interactive SSH sessions.
 export CONDA_NO_PLUGINS=true
+# Keep large collected data + built artifacts OUT of the home quota (in /tmp2).
+export BDA_DATA_DIR="${BDA_DATA_DIR:-$SCRATCH/data}"
 
 # 1. Ensure conda is available; if not, bootstrap miniconda INTO /tmp2 (never home).
 if command -v conda >/dev/null 2>&1; then

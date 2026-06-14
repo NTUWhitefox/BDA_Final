@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from bda.collect.load_sample import load_games          # noqa: E402
-from bda.config import ARTIFACTS_DIR, GAMES_CSV, META_JSON  # noqa: E402
+from bda.config import ARTIFACTS_DIR, ENGINE_PKL, GAMES_CSV, META_JSON  # noqa: E402
 from bda.process.engine import RecommenderEngine        # noqa: E402
 
 
@@ -26,6 +26,11 @@ def main() -> None:
 
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
     engine.games.to_csv(GAMES_CSV, index=False)
+
+    # Persist the fitted engine so the server loads instantly instead of
+    # rebuilding the whole index on its first request (PLAN.md section 5).
+    engine.save(ENGINE_PKL)
+    print(f"Saved fitted engine -> {ENGINE_PKL.name}")
 
     # niche summary: id -> sample of member game names
     niches = {}
