@@ -1,5 +1,9 @@
 # BDA Final — Indie Game Discovery Engine (Proof of Concept)
 
+**GitHub:** https://github.com/NTUWhitefox/BDA_Final  
+**Live demo:** http://ws1.csie.ntu.edu.tw:8731/  
+*(Demo runs on ws1.csie.ntu.edu.tw:8731 — accessible inside the CSIE campus network; or use `ssh -L 8731:localhost:8731 ws1` then open http://localhost:8731/)*
+
 A data product that monetizes public game metadata to solve the **indie game
 discovery bottleneck**. It is double-sided:
 
@@ -51,9 +55,11 @@ same signals. IGDB can be added for richer metadata (free for non-commercial use
 
 ## Setup
 
+Requires **Python 3.10+**.
+
 ```bash
 cd BDA_Final
-python -m venv .venv && source .venv/bin/activate   # optional
+python -m venv .venv && source .venv/bin/activate   # optional but recommended
 pip install -r requirements.txt
 ```
 
@@ -78,16 +84,24 @@ uvicorn bda.api.app:app --reload --app-dir src
 
 ### (Optional) collect live data
 
-Run on a machine with open internet (the course sandbox blocks Steam/SteamSpy):
+Run on a machine with open internet (the course sandbox blocks Steam/SteamSpy).
+SteamSpy rate-limits to ~1 req/s, so collection is slow — use `tmux` or `nohup`.
 
 ```bash
-python scripts/01_collect.py --source steamspy --pages 5        # ~5k games
-python scripts/01_collect.py --source steamspy --top2weeks      # top-100 seed
+# Indie-weighted dataset (recommended — filters AAA games out before enrichment)
+# --pages controls the candidate pool (~1 000 ids/page); --limit caps enrichment calls.
+# Checkpoints every 50 games and RESUMES on re-run (safe to interrupt and continue).
+python scripts/01_collect.py --source steamspy --indie --pages 10 --limit 2000
+
+# Quick demo seed — top-100 most-played (skewed toward AAA, good for a smoke test)
+python scripts/01_collect.py --source steamspy --top2weeks
+
+# Specific appids from the Steam Store API
 python scripts/01_collect.py --source steam --appids 1145360 646570 367520
 ```
 
-This writes `data/raw/games_raw.csv`, which `02_build.py` automatically prefers
-over the bundled seed.
+This writes `data/raw/games_raw.csv` (or `$BDA_DATA_DIR/raw/games_raw.csv` if the
+env var is set). `02_build.py` automatically prefers it over the bundled seed.
 
 ## API
 
@@ -104,13 +118,15 @@ over the bundled seed.
 
 ```
 BDA_Final/
-├── data/sample/games_sample.csv   curated real-game seed (committed)
+├── data/sample/games_sample.csv   curated real-game seed (committed; 42 games)
 ├── src/bda/
 │   ├── collect/    steamspy.py, steam_store.py, igdb.py (live), load_sample.py,
 │   │                merge.py (multi-source), newreleases.py (freshness)
-│   ├── process/    engine.py  (TF-IDF + graph + PageRank recommender)
-│   └── api/        app.py + static/index.html (FastAPI + dashboard)
+│   ├── process/    engine.py  (TF-IDF + kNN + Louvain + PageRank recommender)
+│   └── api/        app.py + static/index.html (FastAPI + web dashboard)
 ├── scripts/        01_collect.py · 02_build.py · 03_query.py · 04_refresh.py
+├── deploy/         ws1_setup.sh · run.sh · DEPLOY.md  (CSIE workstation deploy)
+├── SYSTEM_DESIGN.md               technical system design (SPEC §4)
 └── requirements.txt
 ```
 
