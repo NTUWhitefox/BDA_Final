@@ -1,7 +1,7 @@
 # BDA Final — Indie Game Discovery Engine (Proof of Concept)
 
 **GitHub:** https://github.com/NTUWhitefox/BDA_Final  
-**Live demo:** http://ws1.csie.ntu.edu.tw:8731/  
+**Live demo:** http://ws1.csie.ntu.edu.tw:8731/  (Please use a browser supports http, e.g., Chrome)
 *(Demo runs on ws1.csie.ntu.edu.tw:8731 — accessible inside the CSIE campus network; or use `ssh -L 8731:localhost:8731 ws1` then open http://localhost:8731/)*
 
 A data product that monetizes public game metadata to solve the **indie game
